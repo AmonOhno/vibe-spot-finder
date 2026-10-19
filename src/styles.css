@@ -1,0 +1,72 @@
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --text: #1d2330;
+  --muted: #5d6576;
+  --border: #dde1e8;
+  --accent: #2f6fed;
+  --error: #c62828;
+  --warning: #8a5a00;
+  font-family: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #11141a;
+    --card: #1b2029;
+    --text: #e6e9ef;
+    --muted: #9aa3b5;
+    --border: #2d3442;
+    --accent: #6c9bff;
+    --error: #ff7b7b;
+    --warning: #e6b450;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); }
+.app { max-width: 880px; margin: 0 auto; padding: 24px 16px 64px; }
+.app-header h1 { margin: 0 0 4px; font-size: 1.8rem; }
+.app-header p { margin: 0 0 24px; color: var(--muted); }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.card h2 { margin: 0 0 16px; font-size: 1.15rem; }
+.note { color: var(--muted); font-size: 0.85rem; }
+.error { color: var(--error); font-weight: 600; }
+.warning { color: var(--warning); }
+button { font: inherit; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.dropzone { border: 2px dashed var(--border); border-radius: 12px; padding: 24px; text-align: center; }
+.dropzone.dragging { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.dropzone p { margin: 4px 0; }
+.or { color: var(--muted); font-size: 0.85rem; }
+.preview { margin-top: 16px; }
+.preview img, .preview video { display: block; max-width: 100%; max-height: 320px; border-radius: 8px; }
+.preview-meta { display: flex; gap: 8px; align-items: center; margin: 8px 0; word-break: break-all; }
+.badge { font-size: 0.75rem; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0 0 16px; }
+.tag { padding: 4px 12px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 15%, transparent); font-weight: 600; }
+.bars { margin: 0 0 16px; }
+.bar-row { display: grid; grid-template-columns: 11em 1fr; gap: 8px; align-items: center; margin-bottom: 6px; }
+.bar-row dt { font-size: 0.85rem; color: var(--muted); }
+.bar-row dd { margin: 0; display: flex; align-items: center; gap: 8px; }
+.bar { display: inline-block; height: 10px; border-radius: 5px; background: var(--accent); min-width: 2px; max-width: calc(100% - 3em); }
+.bar-value { font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.palette { display: flex; gap: 6px; margin-bottom: 12px; }
+.swatch { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); }
+.frame-list { display: flex; gap: 6px; flex-wrap: wrap; }
+.frame-list img { width: 96px; border-radius: 4px; }
+.section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.section-head h2 { margin: 0; }
+.region { display: flex; gap: 8px; align-items: center; font-size: 0.9rem; }
+.region select { font: inherit; padding: 4px 8px; border-radius: 6px; }
+.spots { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.spot { border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; }
+.spot p { margin: 4px 0; font-size: 0.9rem; }
+.spot-head { display: flex; justify-content: space-between; gap: 8px; }
+.spot-head h3 { margin: 0; font-size: 1rem; }
+.score { font-weight: 700; color: var(--accent); }
+.spot-area, .reasons { color: var(--muted); }
+.map-link { margin-top: auto; padding-top: 8px; color: var(--accent); font-weight: 600; }
+@media (max-width: 480px) { .bar-row { grid-template-columns: 8em 1fr; } }

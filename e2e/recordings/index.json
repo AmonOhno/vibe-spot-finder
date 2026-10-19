@@ -1,0 +1,146 @@
+[
+  {
+    "id": "TC-01",
+    "title": "初期表示でアップロードエリアのみが表示される",
+    "file": "TC-01.webm",
+    "status": "passed",
+    "durationMs": 2722,
+    "recordedAt": "2026-10-19T14:59:21.123Z"
+  },
+  {
+    "id": "TC-02",
+    "title": "ファイル選択で画像のプレビューが表示される",
+    "file": "TC-02.webm",
+    "status": "passed",
+    "durationMs": 3480,
+    "recordedAt": "2026-10-19T14:59:24.617Z"
+  },
+  {
+    "id": "TC-03",
+    "title": "ドラッグ＆ドロップで動画を選択できる",
+    "file": "TC-03.webm",
+    "status": "passed",
+    "durationMs": 3369,
+    "recordedAt": "2026-10-19T14:59:28.003Z"
+  },
+  {
+    "id": "TC-04",
+    "title": "非対応形式のファイルはエラーになる",
+    "file": "TC-04.webm",
+    "status": "passed",
+    "durationMs": 3430,
+    "recordedAt": "2026-10-19T14:59:31.450Z"
+  },
+  {
+    "id": "TC-05",
+    "title": "サイズ上限を超える画像はエラーになる",
+    "file": "TC-05.webm",
+    "status": "passed",
+    "durationMs": 3419,
+    "recordedAt": "2026-10-19T14:59:34.888Z"
+  },
+  {
+    "id": "TC-06",
+    "title": "クリアで初期状態に戻る",
+    "file": "TC-06.webm",
+    "status": "passed",
+    "durationMs": 4636,
+    "recordedAt": "2026-10-19T14:59:39.548Z"
+  },
+  {
+    "id": "TC-07",
+    "title": "海の画像は「海・水辺」と判定され、海のスポットが提案される",
+    "file": "TC-07.webm",
+    "status": "passed",
+    "durationMs": 5077,
+    "recordedAt": "2026-10-19T14:58:21.391Z"
+  },
+  {
+    "id": "TC-08",
+    "title": "森の画像（JPEG）は「森・緑」と判定される",
+    "file": "TC-08.webm",
+    "status": "passed",
+    "durationMs": 4806,
+    "recordedAt": "2026-10-19T14:58:26.222Z"
+  },
+  {
+    "id": "TC-09",
+    "title": "夜景の画像は「夜景・ネオン」と判定される",
+    "file": "TC-09.webm",
+    "status": "passed",
+    "durationMs": 4974,
+    "recordedAt": "2026-10-19T14:58:31.220Z"
+  },
+  {
+    "id": "TC-10",
+    "title": "夕焼けの画像（WebP）は「夕焼け・ノスタルジック」と判定される",
+    "file": "TC-10.webm",
+    "status": "passed",
+    "durationMs": 4996,
+    "recordedAt": "2026-10-19T14:58:36.245Z"
+  },
+  {
+    "id": "TC-11",
+    "title": "動画は 5 フレームを抽出して解析される",
+    "file": "TC-11.webm",
+    "status": "passed",
+    "durationMs": 4840,
+    "recordedAt": "2026-10-19T14:58:41.102Z"
+  },
+  {
+    "id": "TC-12",
+    "title": "雰囲気を判定できない画像ではスポットを提案しない",
+    "file": "TC-12.webm",
+    "status": "passed",
+    "durationMs": 4004,
+    "recordedAt": "2026-10-19T14:58:45.121Z"
+  },
+  {
+    "id": "TC-13",
+    "title": "提案スポットに一致度と Google マップリンクが表示される",
+    "file": "TC-13.webm",
+    "status": "passed",
+    "durationMs": 4956,
+    "recordedAt": "2026-10-19T14:59:00.598Z"
+  },
+  {
+    "id": "TC-14",
+    "title": "エリアで提案スポットを絞り込める",
+    "file": "TC-14.webm",
+    "status": "passed",
+    "durationMs": 5718,
+    "recordedAt": "2026-10-19T14:59:06.331Z"
+  },
+  {
+    "id": "TC-15",
+    "title": "該当スポットがないエリアではメッセージを表示する",
+    "file": "TC-15.webm",
+    "status": "passed",
+    "durationMs": 5383,
+    "recordedAt": "2026-10-19T14:59:11.732Z"
+  },
+  {
+    "id": "TC-16",
+    "title": "別のファイルを選ぶと前回の結果がリセットされる",
+    "file": "TC-16.webm",
+    "status": "passed",
+    "durationMs": 6631,
+    "recordedAt": "2026-10-19T14:59:18.380Z"
+  },
+  {
+    "id": "TC-17",
+    "title": "解析中に外部へのネットワーク通信が発生しない",
+    "file": "TC-17.webm",
+    "status": "passed",
+    "durationMs": 4827,
+    "recordedAt": "2026-10-19T14:58:49.970Z"
+  },
+  {
+    "id": "TC-18",
+    "title": "モバイル幅でも横スクロールせずに結果を表示できる",
+    "file": "TC-18.webm",
+    "status": "passed",
+    "durationMs": 5638,
+    "recordedAt": "2026-10-19T14:58:55.620Z"
+  }
+]
