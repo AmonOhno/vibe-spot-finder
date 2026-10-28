@@ -92,9 +92,11 @@ done ──(クリア)──▶ idle
 | 画像サイズ超過 | 画像ファイルは 20MB 以下にしてください |
 | 動画サイズ超過 | 動画ファイルは 200MB 以下にしてください |
 | 画像デコード失敗 | 画像を読み込めませんでした |
-| 動画デコード失敗 | 動画を読み込めませんでした |
+| 動画デコード失敗・読み込みタイムアウト | 動画を読み込めませんでした |
 
 ※ 動画コーデックの対応可否はブラウザに依存する（例: Chromium は H.265/HEVC 非対応のことがある）。
+※ 動画の読み込み・各フレームのシークがそれぞれ 15 秒以内に完了しない場合は読み込み失敗として扱う（[SECURITY.md](./SECURITY.md) SR-05）。
+※ SVG・HTML などスクリプトを含み得る形式は受け付けない（SECURITY.md SR-03）。
 
 ### 4.2 雰囲気（Vibe）定義と算出方法
 
@@ -203,7 +205,7 @@ Vibe スコアは **学習済みモデル** と **ルール** の 2 つで算出
 - 形式: `https://www.google.com/maps/search/?api=1&query=<URL エンコードしたクエリ>`
   （[Google Maps URLs](https://developers.google.com/maps/documentation/urls/get-started) の検索アクション。API キー不要）
 - クエリ: `mapQuery` があればそれを、なければ `"<name> <prefecture>"` を使う。
-- `target="_blank" rel="noopener noreferrer"` で新しいタブに開く。
+- `target="_blank" rel="noopener noreferrer"` で新しいタブに開く（ページ全体も `Referrer-Policy: no-referrer`）。
 
 ---
 
@@ -216,6 +218,7 @@ Vibe スコアは **学習済みモデル** と **ルール** の 2 つで算出
 | N-03 | レスポンシブ | 幅 375px（モバイル）で横スクロールが発生しないこと |
 | N-04 | アクセシビリティ | 主要操作要素にアクセシブルネームを付与し、エラーは `role="alert"` で通知する |
 | N-05 | ダークモード | `prefers-color-scheme: dark` に追従する |
+| N-06 | セキュリティ | [SECURITY.md](./SECURITY.md) のセキュリティ要件を満たす（CSP・セキュリティヘッダー・入力制限・依存関係の脆弱性 0 件など） |
 
 ---
 

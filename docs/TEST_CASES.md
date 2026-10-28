@@ -55,6 +55,7 @@
 | ID | 対応仕様 | テストケース | 前提・手順 | 期待結果 |
 |---|---|---|---|---|
 | TC-17 | N-01 | 解析中に外部へのネットワーク通信が発生しない | 1. ページ読み込みから全リクエストを監視 2. `ocean.webm` を解析 | アプリ自身のオリジン・`blob:`・`data:` 以外へのリクエストが 0 件 |
+| TC-19 | N-01, N-06（SECURITY.md SR-10, SR-11） | CSP とセキュリティヘッダーにより外部への送信が遮断される | 1. ページを開く 2. `ocean.png` を解析 3. ページ内から外部 URL へ `fetch` と画像読み込みを試みる | 応答ヘッダーに `Content-Security-Policy`（`frame-ancestors 'none'`）・`X-Content-Type-Options: nosniff`・`Referrer-Policy: no-referrer`。CSP の meta に `connect-src 'none'`。3 の `fetch` は失敗し、`connect-src`・`img-src` の CSP 違反が発生し、外部からの応答は 0 件 |
 | TC-18 | N-03 | モバイル幅でも横スクロールせずに結果を表示できる | 1. ビューポート 375×812 2. `sunset.webp` を解析 | `scrollWidth − innerWidth ≤ 0` |
 
 ## ユニットテスト（参考）
@@ -63,6 +64,6 @@
 
 | ファイル | 内容 |
 |---|---|
-| `src/analysis/vibeAnalyzer.test.ts` | 単色入力ごとの Vibe 判定、フレーム平均、判定不可、推薦の順位・絞り込み・件数上限、入力検証、学習モデルの出力範囲・テクスチャのある画像の判定・平坦な画像でのルールへの切り替え |
+| `src/analysis/vibeAnalyzer.test.ts` | 単色入力ごとの Vibe 判定、フレーム平均、判定不可、推薦の順位・絞り込み・件数上限、入力検証（SVG・HTML の拒否を含む）、メディア読み込みのタイムアウト、学習モデルの出力範囲・テクスチャのある画像の判定・平坦な画像でのルールへの切り替え |
 | `src/analysis/modelFeatures.test.ts` | 特徴ベクトルと最終スコアが学習側の Python 実装と一致すること（`__fixtures__/featureParity.json`） |
 | `src/data/spots.test.ts` | スポットデータ要件（§4.4）、関東スポットの件数・都県（§4.4.1）、Google マップ URL 生成 |

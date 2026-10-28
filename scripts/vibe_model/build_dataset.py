@@ -15,6 +15,7 @@ import collections
 import csv
 import io
 import random
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -28,6 +29,11 @@ from labels import VIBE_CLASSES, VIBE_IDS
 
 ANALYSIS_SIZE = 96
 IMAGE_URL = 'https://s3.amazonaws.com/open-images-dataset/{split}/{id}.jpg'
+# CSV は外部から取得するため、パス・URL に埋め込む値を検証する（docs/SECURITY.md SR-20）
+SPLITS = {'train', 'validation', 'test'}
+IMAGE_ID = re.compile(r'[0-9a-f]{16}')
+MAX_IMAGE_BYTES = 20 * 1024 * 1024
+Image.MAX_IMAGE_PIXELS = 100_000_000  # 展開爆弾対策（超過時は DecompressionBombError）
 
 
 def load_positives(work: Path):
@@ -46,6 +52,9 @@ def load_positives(work: Path):
             for row in csv.reader(f):
                 if row[0] == 'ImageID':
                     continue
+                if not IMAGE_ID.fullmatch(row[0]):
+                    print('skip invalid ImageID', repr(row[0][:40]), file=sys.stderr)
+                    continue
                 if split == 'test':
                     all_test.add(row[0])
                 if row[3] == '1' and row[2] in mid2vibe:
@@ -57,15 +66,19 @@ def load_positives(work: Path):
 def fetch(cache: Path, key):
     """画像を取得して縮小する。結果は cache に保存し、再実行時は再取得しない。"""
     split, image_id = key
+    if split not in SPLITS or not IMAGE_ID.fullmatch(image_id):
+        raise ValueError(f'invalid key: {key!r}')
     path = cache / f'{split}_{image_id}.npy'
     miss = cache / f'{split}_{image_id}.missing'
     if path.exists():
-        return np.load(path)
+        return np.load(path, allow_pickle=False)
     if miss.exists():
         return None
     try:
         with urllib.request.urlopen(IMAGE_URL.format(split=split, id=image_id), timeout=60) as r:
-            data = r.read()
+            data = r.read(MAX_IMAGE_BYTES + 1)
+        if len(data) > MAX_IMAGE_BYTES:
+            raise ValueError(f'too large (> {MAX_IMAGE_BYTES} bytes)')
         img = Image.open(io.BytesIO(data))
         img.draft('RGB', (ANALYSIS_SIZE * 2, ANALYSIS_SIZE * 2))  # JPEG の DCT 縮小で高速化
         img = img.convert('RGB')

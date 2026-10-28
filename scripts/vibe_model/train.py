@@ -163,10 +163,10 @@ def main():
     rng = np.random.default_rng(args.seed)
 
     cache = args.work / 'features.npz'
-    d = np.load(args.work / 'dataset.npz')
+    d = np.load(args.work / 'dataset.npz', allow_pickle=False)
     y, ids = d['targets'], d['ids']
-    if cache.exists() and np.load(cache)['x'].shape[0] == len(y):
-        x = np.load(cache)['x']
+    if cache.exists() and np.load(cache, allow_pickle=False)['x'].shape[0] == len(y):
+        x = np.load(cache, allow_pickle=False)['x']
     else:
         pixels, shapes = d['pixels'], d['shapes']  # npz は参照のたびに展開されるため一度だけ読む
         offsets = np.concatenate([[0], np.cumsum(shapes.prod(1))])
