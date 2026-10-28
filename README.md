@@ -1,10 +1,12 @@
 # Vibe Spot Finder
 
-写真や動画を読み込ませると、その **雰囲気（色味・明暗）** を解析し、
+写真や動画を読み込ませると、その **雰囲気（色味・明暗・質感）** を解析し、
 **雰囲気が近い国内スポット** を **Google マップのリンク付き** で提案するブラウザアプリです。
 
 - ファイルは **ブラウザ内だけで解析** され、サーバーには送信されません。
 - 動画は 5 フレームを抽出して平均的な雰囲気を判定します。
+- 解析には Web 上の写真（Open Images Dataset、約 2.2 万枚）で学習した軽量モデルを使います（重みはアプリに同梱）。
+- 全国の代表スポットに加え、関東 1 都 6 県の 2,000 スポットから提案します。
 
 ## ドキュメント
 
@@ -24,7 +26,7 @@
 ├── src/                         React アプリ本体
 │   ├── analysis/                解析・推薦ロジック（+ Vitest ユニットテスト）
 │   ├── components/              UI コンポーネント
-│   └── data/spots.ts            スポットデータ
+│   └── data/                    スポットデータ（spots.ts / 自動生成の kantoSpots.ts）
 ├── e2e/
 │   ├── *.spec.ts                テストケースに沿った Playwright 実装
 │   ├── helpers.ts               共通操作（ファイル選択・D&D・解析）
@@ -32,7 +34,10 @@
 │   ├── reporters/
 │   │   └── video-archiver.ts    操作動画を recordings/ に保管するレポーター
 │   └── recordings/              操作キャプチャ動画（TC-xx.webm）と一覧
-├── scripts/generate_fixtures.py フィクスチャ生成スクリプト
+├── scripts/
+│   ├── generate_fixtures.py     フィクスチャ生成スクリプト
+│   ├── vibe_model/              解析モデルの学習（README.md に手順）
+│   └── spots/                   関東スポットデータの生成（README.md に手順）
 └── playwright.config.ts
 ```
 
@@ -68,3 +73,13 @@ CI（GitHub Actions）でも同じテストを実行し、動画とレポート�
 ```bash
 npm run fixtures   # Python 3 + Pillow + ffmpeg が必要
 ```
+
+### 解析モデル・スポットデータの再生成
+
+- 解析モデル: [scripts/vibe_model/README.md](scripts/vibe_model/README.md)
+- 関東スポット: [scripts/spots/README.md](scripts/spots/README.md)
+
+## データの出典
+
+- 解析モデルの学習データ: [Open Images Dataset](https://storage.googleapis.com/openimages/web/index.html)（画像は再配布せず、学習済みの重みのみ同梱）
+- 関東スポット: © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright)（[Overture Maps Foundation](https://overturemaps.org/) 経由、ODbL 1.0）

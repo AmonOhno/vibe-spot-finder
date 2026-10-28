@@ -70,3 +70,4 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .spot-area, .reasons { color: var(--muted); }
 .map-link { margin-top: auto; padding-top: 8px; color: var(--accent); font-weight: 600; }
 @media (max-width: 480px) { .bar-row { grid-template-columns: 8em 1fr; } }
+.attribution { font-size: 0.75rem; color: var(--muted); text-align: center; }

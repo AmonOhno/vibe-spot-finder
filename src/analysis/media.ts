@@ -1,3 +1,5 @@
+import type { Frame } from './modelFeatures';
+
 /** 入力ファイルの受け付け条件。docs/SPEC.md §4.1 と一致させること。 */
 export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 export const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
@@ -25,8 +27,8 @@ export function validateFile(file: Pick<File, 'type' | 'size'>): ValidationResul
 }
 
 export interface ExtractedFrames {
-  /** 解析用の縮小 RGBA ピクセル列。 */
-  pixels: Uint8ClampedArray[];
+  /** 解析用の縮小 RGBA ピクセル列（幅・高さ付き）。 */
+  pixels: Frame[];
   /** 画面表示用のサムネイル（data URL）。 */
   thumbnails: string[];
 }
@@ -41,7 +43,7 @@ function drawToPixels(source: CanvasImageSource, width: number, height: number) 
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) throw new Error('Canvas を初期化できませんでした');
   ctx.drawImage(source, 0, 0, w, h);
-  return { pixels: ctx.getImageData(0, 0, w, h).data, thumbnail: canvas.toDataURL('image/jpeg', 0.8) };
+  return { pixels: ctx.getImageData(0, 0, w, h), thumbnail: canvas.toDataURL('image/jpeg', 0.8) };
 }
 
 async function extractFromImage(url: string): Promise<ExtractedFrames> {

@@ -63,5 +63,6 @@
 
 | ファイル | 内容 |
 |---|---|
-| `src/analysis/vibeAnalyzer.test.ts` | 単色入力ごとの Vibe 判定、フレーム平均、判定不可、推薦の順位・絞り込み・件数上限、入力検証 |
-| `src/data/spots.test.ts` | スポットデータ要件（§4.4）、Google マップ URL 生成 |
+| `src/analysis/vibeAnalyzer.test.ts` | 単色入力ごとの Vibe 判定、フレーム平均、判定不可、推薦の順位・絞り込み・件数上限、入力検証、学習モデルの出力範囲・テクスチャのある画像の判定・平坦な画像でのルールへの切り替え |
+| `src/analysis/modelFeatures.test.ts` | 特徴ベクトルと最終スコアが学習側の Python 実装と一致すること（`__fixtures__/featureParity.json`） |
+| `src/data/spots.test.ts` | スポットデータ要件（§4.4）、関東スポットの件数・都県（§4.4.1）、Google マップ URL 生成 |

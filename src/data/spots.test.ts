@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { VIBE_IDS } from '../analysis/types';
+import { KANTO_SPOTS } from './kantoSpots';
 import { googleMapsUrl, REGIONS, SPOTS } from './spots';
 
 // docs/SPEC.md §4.4 のデータ要件
@@ -24,5 +25,25 @@ describe('SPOTS データ要件', () => {
       `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${SPOTS[0].name} ${SPOTS[0].prefecture}`)}`,
     );
     expect(googleMapsUrl({ ...SPOTS[0], mapQuery: 'x y' })).toBe('https://www.google.com/maps/search/?api=1&query=x%20y');
+  });
+});
+
+describe('関東スポット（kantoSpots.ts）', () => {
+  const KANTO = ['東京都', '神奈川県', '埼玉県', '千葉県', '茨城県', '栃木県', '群馬県'];
+  it('2000 件あり、SPOTS に含まれる', () => {
+    expect(KANTO_SPOTS).toHaveLength(2000);
+    expect(SPOTS.filter((s) => s.region === '関東').length).toBeGreaterThanOrEqual(2000);
+  });
+  it('すべて関東 1 都 6 県のスポットで、名称・説明・雰囲気を持つ', () => {
+    for (const s of KANTO_SPOTS) {
+      expect(s.region).toBe('関東');
+      expect(KANTO).toContain(s.prefecture);
+      expect(s.name.length).toBeGreaterThan(1);
+      expect(s.description.length).toBeGreaterThan(0);
+      expect(Math.max(...Object.values(s.vibes))).toBeGreaterThan(0);
+    }
+  });
+  it.each(KANTO)('%s に 100 件以上ある', (pref) => {
+    expect(KANTO_SPOTS.filter((s) => s.prefecture === pref).length).toBeGreaterThanOrEqual(100);
   });
 });
