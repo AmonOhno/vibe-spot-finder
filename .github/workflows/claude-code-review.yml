@@ -1,0 +1,36 @@
+name: Claude Code Review
+
+# PR ごとに Claude Code の公式 code-review プラグインでレビューし、指摘を PR にコメントする。
+# 事前にリポジトリの Secrets に ANTHROPIC_API_KEY か CLAUDE_CODE_OAUTH_TOKEN のどちらかを登録し、
+# Claude GitHub App（https://github.com/apps/claude）をインストールしておくこと。
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # ドラフト PR とフォークからの PR（Secrets を参照できない）は対象外
+    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          plugin_marketplaces: https://github.com/anthropics/claude-plugins-official.git
+          plugins: code-review@claude-plugins-official
+          prompt: /code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}

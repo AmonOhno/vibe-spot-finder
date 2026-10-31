@@ -66,7 +66,18 @@ npm run test:e2e:record  # 録画用: slowMo 付きで 1 ワーカー実行し�
 3. 同時に `e2e/recordings/index.json` と `README.md`（一覧表）を再生成
 
 テストケースを追加したら `npm run test:e2e:record` を実行し、更新された動画もコミットしてください。
-CI（GitHub Actions）でも同じテストを実行し、動画とレポートを Artifact として保存します。
+### CI（GitHub Actions）
+
+PR を作成・更新すると次のワークフローが動きます。
+
+| ワークフロー | 内容 |
+|---|---|
+| [`e2e.yml`](.github/workflows/e2e.yml) | 型チェック・ユニットテスト・E2E を実行。E2E はリトライなしで **全件パスしなければ失敗**。レポートと動画を Artifact に保存 |
+| [`claude-code-review.yml`](.github/workflows/claude-code-review.yml) | Claude Code の公式 `code-review` プラグインでレビューし、指摘を PR にコメント |
+
+Claude のレビューには、リポジトリの Secrets に `ANTHROPIC_API_KEY` か `CLAUDE_CODE_OAUTH_TOKEN` の登録と、
+[Claude GitHub App](https://github.com/apps/claude) のインストールが必要です。
+E2E を必須チェックにするには、ブランチ保護（Settings → Branches）で `E2E / test` を必須に設定してください。
 
 ### フィクスチャの再生成
 

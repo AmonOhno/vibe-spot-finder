@@ -256,6 +256,7 @@ scripts/
 
 - E2E テストケースは [TEST_CASES.md](./TEST_CASES.md) で管理し、テストタイトル先頭に `TC-xx` を付けて 1 対 1 で対応させる。
 - テスト用フィクスチャは `scripts/generate_fixtures.py` で生成し、`e2e/fixtures/` にコミットする。
+- PR ごとに GitHub Actions で型チェック・ユニットテスト・E2E（リトライなしで全件パス必須）を実行し、Claude Code の `code-review` プラグインでレビューする（`.github/workflows/`）。
 
 ---
 
