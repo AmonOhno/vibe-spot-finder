@@ -9,6 +9,7 @@
 - E2E を変更したら `npm run test:e2e:record` で `e2e/recordings/` の動画を更新してコミットする。
 - 解析ロジック（`src/analysis/vibeAnalyzer.ts`, `matcher.ts`）は DOM 非依存の純粋関数に保ち、Vitest でテストする。
 - ユーザーのファイルを外部に送信する実装をしない（SPEC N-01 / TC-17）。
+- セキュリティに影響する変更（外部通信・受け付ける形式・CSP / ヘッダー・依存関係・データ取得スクリプト）は `docs/SECURITY.md` を同じ変更内で更新し、`npm audit` で脆弱性 0 件を確認する。
 
 ## コマンド
 ```bash

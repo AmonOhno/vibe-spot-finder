@@ -9,6 +9,8 @@ export const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
 export const VIDEO_FRAME_COUNT = 5;
 /** 解析時の縮小サイズ（長辺 px）。解析コストを一定にするため。 */
 export const ANALYSIS_SIZE = 96;
+/** 動画の読み込み・シーク 1 回あたりの待ち時間の上限（ms）。応答しないファイルで解析中のまま固まらないようにする。 */
+export const MEDIA_EVENT_TIMEOUT_MS = 15_000;
 
 export type MediaKind = 'image' | 'video';
 
@@ -58,16 +60,23 @@ async function extractFromImage(url: string): Promise<ExtractedFrames> {
   return { pixels: [pixels], thumbnails: [thumbnail] };
 }
 
-function once(target: HTMLMediaElement, event: string): Promise<void> {
+/** `event` か `error` のどちらかが来るまで待つ。`timeoutMs` 以内に来なければ読み込み失敗として扱う。 */
+export function once(target: EventTarget, event: string, timeoutMs = MEDIA_EVENT_TIMEOUT_MS): Promise<void> {
   return new Promise((resolve, reject) => {
-    const onOk = () => {
+    const cleanup = () => {
+      clearTimeout(timer);
+      target.removeEventListener(event, onOk);
       target.removeEventListener('error', onErr);
+    };
+    const onOk = () => {
+      cleanup();
       resolve();
     };
     const onErr = () => {
-      target.removeEventListener(event, onOk);
+      cleanup();
       reject(new Error('動画を読み込めませんでした'));
     };
+    const timer = setTimeout(onErr, timeoutMs);
     target.addEventListener(event, onOk, { once: true });
     target.addEventListener('error', onErr, { once: true });
   });
@@ -75,6 +84,16 @@ function once(target: HTMLMediaElement, event: string): Promise<void> {
 
 async function extractFromVideo(url: string): Promise<ExtractedFrames> {
   const video = document.createElement('video');
+  try {
+    return await readVideoFrames(video, url);
+  } finally {
+    // タイムアウト時もデコードを止めてリソースを解放する
+    video.removeAttribute('src');
+    video.load();
+  }
+}
+
+async function readVideoFrames(video: HTMLVideoElement, url: string): Promise<ExtractedFrames> {
   video.muted = true;
   video.playsInline = true;
   video.preload = 'auto';

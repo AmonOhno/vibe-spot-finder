@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { analyzeFrames, computeFeatures, pickDominant, predictVibes, scoreVibes } from './vibeAnalyzer';
 import { FEATURE_SIZE } from './modelFeatures';
 import { matchSpots } from './matcher';
-import { validateFile } from './media';
+import { once, validateFile } from './media';
 import { SPOTS } from '../data/spots';
 
 /** 単色 RGBA ピクセル列を作る。 */
@@ -70,8 +70,30 @@ describe('validateFile', () => {
     [{ type: 'text/plain', size: 1 }, false],
     [{ type: 'image/png', size: 20 * 1024 * 1024 + 1 }, false],
     [{ type: 'video/mp4', size: 200 * 1024 * 1024 + 1 }, false],
+    // スクリプトを含み得る形式は受け付けない（SECURITY.md SR-03）
+    [{ type: 'image/svg+xml', size: 1 }, false],
+    [{ type: 'text/html', size: 1 }, false],
+    [{ type: '', size: 1 }, false],
   ])('%o → ok=%s', (file, ok) => {
     expect(validateFile(file).ok).toBe(ok);
+  });
+});
+
+describe('once（メディアイベント待ち）', () => {
+  it('イベントが来れば解決する', async () => {
+    const target = new EventTarget();
+    const p = once(target, 'seeked', 1000);
+    target.dispatchEvent(new Event('seeked'));
+    await expect(p).resolves.toBeUndefined();
+  });
+  it('error イベントで読み込み失敗になる', async () => {
+    const target = new EventTarget();
+    const p = once(target, 'seeked', 1000);
+    target.dispatchEvent(new Event('error'));
+    await expect(p).rejects.toThrow('動画を読み込めませんでした');
+  });
+  it('応答がなければタイムアウトで読み込み失敗になる（SECURITY.md SR-05）', async () => {
+    await expect(once(new EventTarget(), 'seeked', 10)).rejects.toThrow('動画を読み込めませんでした');
   });
 });
 

@@ -13,7 +13,8 @@
 | ファイル | 内容 |
 |---|---|
 | [docs/SPEC.md](docs/SPEC.md) | アプリ仕様書（機能・解析ルール・推薦ロジック・非機能要件） |
-| [docs/TEST_CASES.md](docs/TEST_CASES.md) | E2E テストケース一覧（TC-01〜TC-18） |
+| [docs/TEST_CASES.md](docs/TEST_CASES.md) | E2E テストケース一覧（TC-01〜TC-19） |
+| [docs/SECURITY.md](docs/SECURITY.md) | セキュリティ要件書（脅威・要件・CSP / ヘッダー・検証方法） |
 | [e2e/recordings/README.md](e2e/recordings/README.md) | Playwright の操作キャプチャ動画一覧 |
 
 ## ディレクトリ構成
@@ -22,6 +23,7 @@
 .
 ├── docs/
 │   ├── SPEC.md                  アプリ仕様書
+│   ├── SECURITY.md              セキュリティ要件書
 │   └── TEST_CASES.md            テストケース
 ├── src/                         React アプリ本体
 │   ├── analysis/                解析・推薦ロジック（+ Vitest ユニットテスト）
