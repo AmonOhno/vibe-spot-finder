@@ -1,4 +1,5 @@
 import type { VibeId } from '../analysis/types';
+import { KANTO_SPOTS } from './kantoSpots';
 
 export const REGIONS = ['北海道・東北', '関東', '中部', '関西', '中国・四国', '九州・沖縄'] as const;
 export type Region = (typeof REGIONS)[number];
@@ -16,10 +17,10 @@ export interface Spot {
 }
 
 /**
- * 推薦対象スポットの静的データセット（v0.1）。
+ * 全国の代表スポット（v0.1 から手動で定義しているもの）。
  * 追加・変更時は docs/SPEC.md §4.4 のデータ要件を満たすこと。
  */
-export const SPOTS: Spot[] = [
+const NATIONWIDE_SPOTS: Spot[] = [
   { id: 'kabira-bay', name: '川平湾', prefecture: '沖縄県', region: '九州・沖縄', description: 'エメラルドグリーンの海が広がる石垣島の景勝地', vibes: { ocean: 1, vivid: 0.4, forest: 0.2 } },
   { id: 'yonaha-maehama', name: '与那覇前浜ビーチ', prefecture: '沖縄県', region: '九州・沖縄', description: '真っ白な砂浜と遠浅の青い海', vibes: { ocean: 1, snow: 0.3 } },
   { id: 'enoshima', name: '江の島', prefecture: '神奈川県', region: '関東', description: '海と夕日、レトロな参道が楽しめる島', vibes: { ocean: 0.8, sunset: 0.5, retro: 0.4 } },
@@ -45,6 +46,9 @@ export const SPOTS: Spot[] = [
   { id: 'takeshita', name: '原宿 竹下通り', prefecture: '東京都', region: '関東', description: 'カラフルなショップが並ぶポップな通り', vibes: { vivid: 1, retro: 0.2 } },
   { id: 'fushimi-inari', name: '伏見稲荷大社', prefecture: '京都府', region: '関西', description: '朱色の千本鳥居が続く参道', vibes: { vivid: 0.7, sunset: 0.7, retro: 0.5, forest: 0.3 } },
 ];
+
+/** 推薦対象スポットの静的データセット。関東分は scripts/spots/ で生成した kantoSpots.ts を使う。 */
+export const SPOTS: Spot[] = [...NATIONWIDE_SPOTS, ...KANTO_SPOTS];
 
 export function googleMapsUrl(spot: Spot): string {
   const query = spot.mapQuery ?? `${spot.name} ${spot.prefecture}`;

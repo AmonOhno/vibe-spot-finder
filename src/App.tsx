@@ -144,6 +144,13 @@ export function App() {
           </section>
         )}
       </main>
+      <footer className="attribution">
+        関東のスポットデータ: ©{' '}
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">
+          OpenStreetMap contributors
+        </a>
+        （Overture Maps Foundation 経由、ODbL）
+      </footer>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeFrames, computeFeatures, pickDominant } from './vibeAnalyzer';
+import { analyzeFrames, computeFeatures, pickDominant, predictVibes, scoreVibes } from './vibeAnalyzer';
+import { FEATURE_SIZE } from './modelFeatures';
 import { matchSpots } from './matcher';
-import { validateFile } from './media';
+import { once, validateFile } from './media';
 import { SPOTS } from '../data/spots';
 
 /** 単色 RGBA ピクセル列を作る。 */
@@ -69,13 +70,65 @@ describe('validateFile', () => {
     [{ type: 'text/plain', size: 1 }, false],
     [{ type: 'image/png', size: 20 * 1024 * 1024 + 1 }, false],
     [{ type: 'video/mp4', size: 200 * 1024 * 1024 + 1 }, false],
+    // スクリプトを含み得る形式は受け付けない（SECURITY.md SR-03）
+    [{ type: 'image/svg+xml', size: 1 }, false],
+    [{ type: 'text/html', size: 1 }, false],
+    [{ type: '', size: 1 }, false],
   ])('%o → ok=%s', (file, ok) => {
     expect(validateFile(file).ok).toBe(ok);
+  });
+});
+
+describe('once（メディアイベント待ち）', () => {
+  it('イベントが来れば解決する', async () => {
+    const target = new EventTarget();
+    const p = once(target, 'seeked', 1000);
+    target.dispatchEvent(new Event('seeked'));
+    await expect(p).resolves.toBeUndefined();
+  });
+  it('error イベントで読み込み失敗になる', async () => {
+    const target = new EventTarget();
+    const p = once(target, 'seeked', 1000);
+    target.dispatchEvent(new Event('error'));
+    await expect(p).rejects.toThrow('動画を読み込めませんでした');
+  });
+  it('応答がなければタイムアウトで読み込み失敗になる（SECURITY.md SR-05）', async () => {
+    await expect(once(new EventTarget(), 'seeked', 10)).rejects.toThrow('動画を読み込めませんでした');
   });
 });
 
 describe('retro', () => {
   it('低彩度の暖色（セピア調）は「レトロ・落ち着き」になる', () => {
     expect(analyzeFrames([solid(170, 140, 110)]).dominant[0]).toBe('retro');
+  });
+});
+
+/** 各画素を指定範囲の乱数色にした、テクスチャのある画像（学習モデルの判定対象）。 */
+function noisy(seed: number, lo: [number, number, number], hi: [number, number, number], w = 64, h = 48) {
+  let x = seed;
+  const rand = () => ((x = (x * 1103515245 + 12345) % 2147483648) / 2147483648);
+  const data = new Uint8ClampedArray(w * h * 4);
+  for (let i = 0; i < data.length; i += 4) {
+    data.set([0, 1, 2].map((c) => lo[c] + rand() * (hi[c] - lo[c])), i);
+    data[i + 3] = 255;
+  }
+  return { data, width: w, height: h };
+}
+
+describe('学習モデル', () => {
+  it('出力は Vibe ごとの 0〜1 のスコア', () => {
+    const p = predictVibes(new Float64Array(FEATURE_SIZE));
+    for (const v of Object.values(p)) {
+      expect(v).toBeGreaterThanOrEqual(0);
+      expect(v).toBeLessThanOrEqual(1);
+    }
+    expect(() => predictVibes([1, 2, 3])).toThrow();
+  });
+  it('テクスチャのある緑の画像は学習モデルで「森・緑」と判定される', () => {
+    expect(analyzeFrames([noisy(1, [10, 60, 10], [90, 170, 70])]).dominant[0]).toBe('forest');
+  });
+  it('テクスチャのない単色画像はルールのスコアと一致する', () => {
+    const r = analyzeFrames([solid(30, 110, 210)]);
+    expect(r.profile).toEqual(scoreVibes(r.features));
   });
 });

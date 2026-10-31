@@ -1,3 +1,5 @@
+import type { Frame } from './modelFeatures';
+
 /** 入力ファイルの受け付け条件。docs/SPEC.md §4.1 と一致させること。 */
 export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 export const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
@@ -7,6 +9,8 @@ export const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
 export const VIDEO_FRAME_COUNT = 5;
 /** 解析時の縮小サイズ（長辺 px）。解析コストを一定にするため。 */
 export const ANALYSIS_SIZE = 96;
+/** 動画の読み込み・シーク 1 回あたりの待ち時間の上限（ms）。応答しないファイルで解析中のまま固まらないようにする。 */
+export const MEDIA_EVENT_TIMEOUT_MS = 15_000;
 
 export type MediaKind = 'image' | 'video';
 
@@ -25,8 +29,8 @@ export function validateFile(file: Pick<File, 'type' | 'size'>): ValidationResul
 }
 
 export interface ExtractedFrames {
-  /** 解析用の縮小 RGBA ピクセル列。 */
-  pixels: Uint8ClampedArray[];
+  /** 解析用の縮小 RGBA ピクセル列（幅・高さ付き）。 */
+  pixels: Frame[];
   /** 画面表示用のサムネイル（data URL）。 */
   thumbnails: string[];
 }
@@ -41,7 +45,7 @@ function drawToPixels(source: CanvasImageSource, width: number, height: number) 
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) throw new Error('Canvas を初期化できませんでした');
   ctx.drawImage(source, 0, 0, w, h);
-  return { pixels: ctx.getImageData(0, 0, w, h).data, thumbnail: canvas.toDataURL('image/jpeg', 0.8) };
+  return { pixels: ctx.getImageData(0, 0, w, h), thumbnail: canvas.toDataURL('image/jpeg', 0.8) };
 }
 
 async function extractFromImage(url: string): Promise<ExtractedFrames> {
@@ -56,16 +60,23 @@ async function extractFromImage(url: string): Promise<ExtractedFrames> {
   return { pixels: [pixels], thumbnails: [thumbnail] };
 }
 
-function once(target: HTMLMediaElement, event: string): Promise<void> {
+/** `event` か `error` のどちらかが来るまで待つ。`timeoutMs` 以内に来なければ読み込み失敗として扱う。 */
+export function once(target: EventTarget, event: string, timeoutMs = MEDIA_EVENT_TIMEOUT_MS): Promise<void> {
   return new Promise((resolve, reject) => {
-    const onOk = () => {
+    const cleanup = () => {
+      clearTimeout(timer);
+      target.removeEventListener(event, onOk);
       target.removeEventListener('error', onErr);
+    };
+    const onOk = () => {
+      cleanup();
       resolve();
     };
     const onErr = () => {
-      target.removeEventListener(event, onOk);
+      cleanup();
       reject(new Error('動画を読み込めませんでした'));
     };
+    const timer = setTimeout(onErr, timeoutMs);
     target.addEventListener(event, onOk, { once: true });
     target.addEventListener('error', onErr, { once: true });
   });
@@ -73,6 +84,16 @@ function once(target: HTMLMediaElement, event: string): Promise<void> {
 
 async function extractFromVideo(url: string): Promise<ExtractedFrames> {
   const video = document.createElement('video');
+  try {
+    return await readVideoFrames(video, url);
+  } finally {
+    // タイムアウト時もデコードを止めてリソースを解放する
+    video.removeAttribute('src');
+    video.load();
+  }
+}
+
+async function readVideoFrames(video: HTMLVideoElement, url: string): Promise<ExtractedFrames> {
   video.muted = true;
   video.playsInline = true;
   video.preload = 'auto';

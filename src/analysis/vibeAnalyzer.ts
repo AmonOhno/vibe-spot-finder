@@ -1,4 +1,6 @@
+import { extractModelFeatures, FEATURE_SIZE, toFrame, type Frame } from './modelFeatures';
 import { VIBE_IDS, type AnalysisResult, type ColorFeatures, type VibeId, type VibeProfile } from './types';
+import { B1, B2, FEATURE_MEAN, FEATURE_STD, GATE_HIGH, GATE_LOW, HIDDEN_SIZE, W1, W2 } from './vibeModelWeights';
 
 /** dominant に含める最低スコア。これ未満しかなければ「判定不可」とする。 */
 export const DOMINANT_THRESHOLD = 0.3;
@@ -94,7 +96,10 @@ export function computeFeatures(data: Uint8ClampedArray): ColorFeatures {
   };
 }
 
-/** 色特徴量を Vibe スコアに変換する。ルールは docs/SPEC.md §4.2 を参照。 */
+/**
+ * 色特徴量をルールで Vibe スコアに変換する（v0.1 の方式）。ルールは docs/SPEC.md §4.2 を参照。
+ * 学習モデルの分布外となる平坦な画像（単色・グラデーション等）の判定に使う。
+ */
 export function scoreVibes(f: ColorFeatures): VibeProfile {
   const midBrightness = f.brightness >= 0.25 && f.brightness <= 0.8 ? 1 : 0.3;
   return {
@@ -108,6 +113,30 @@ export function scoreVibes(f: ColorFeatures): VibeProfile {
   };
 }
 
+/** 特徴ベクトル中の輝度勾配平均の位置（modelFeatures.ts のテクスチャ特徴の先頭）。 */
+const GRADIENT_INDEX = 73;
+
+/**
+ * 特徴ベクトルを学習済みモデル（84 → 64 → 7 の MLP）で Vibe スコアに変換する。
+ * 出力は各 Vibe が写っている確率（0〜1）。学習方法は docs/SPEC.md §4.2 を参照。
+ */
+export function predictVibes(features: ArrayLike<number>): VibeProfile {
+  if (features.length !== FEATURE_SIZE) throw new Error('特徴ベクトルの次元が不正です');
+  const hidden = new Float64Array(HIDDEN_SIZE);
+  for (let i = 0; i < FEATURE_SIZE; i++) {
+    const x = (features[i] - FEATURE_MEAN[i]) / FEATURE_STD[i];
+    if (x === 0) continue;
+    for (let j = 0; j < HIDDEN_SIZE; j++) hidden[j] += x * W1[i * HIDDEN_SIZE + j];
+  }
+  const profile = {} as VibeProfile;
+  VIBE_IDS.forEach((id, k) => {
+    let z = B2[k];
+    for (let j = 0; j < HIDDEN_SIZE; j++) z += Math.max(0, hidden[j] + B1[j]) * W2[j * VIBE_IDS.length + k];
+    profile[id] = 1 / (1 + Math.exp(-z));
+  });
+  return profile;
+}
+
 export function pickDominant(profile: VibeProfile): VibeId[] {
   return VIBE_IDS.filter((id) => profile[id] >= DOMINANT_THRESHOLD)
     .sort((a, b) => profile[b] - profile[a])
@@ -115,9 +144,9 @@ export function pickDominant(profile: VibeProfile): VibeId[] {
 }
 
 /** 複数フレームの特徴量を平均して 1 つの解析結果にまとめる。 */
-export function analyzeFrames(frames: Uint8ClampedArray[]): AnalysisResult {
+export function analyzeFrames(frames: (Frame | Uint8ClampedArray)[]): AnalysisResult {
   if (frames.length === 0) throw new Error('解析対象のフレームがありません');
-  const all = frames.map(computeFeatures);
+  const all = frames.map((f) => computeFeatures(toFrame(f).data));
   const avg = (k: Exclude<keyof ColorFeatures, 'palette'>) => all.reduce((s, f) => s + f[k], 0) / all.length;
 
   const features: ColorFeatures = {
@@ -134,6 +163,14 @@ export function analyzeFrames(frames: Uint8ClampedArray[]): AnalysisResult {
     // 代表色は各フレームの最頻色を順に集め、重複を除いて上位を使う
     palette: [...new Set(all.flatMap((f) => f.palette))].slice(0, PALETTE_SIZE),
   };
-  const profile = scoreVibes(features);
+  // モデル入力も各フレームの特徴ベクトルを平均する
+  const vector = new Float64Array(FEATURE_SIZE);
+  for (const f of frames) extractModelFeatures(f).forEach((v, i) => (vector[i] += v / frames.length));
+  // 実写で学習したモデルを使い、テクスチャのほとんどない平坦な画像ほどルールの比重を上げる
+  const model = predictVibes(vector);
+  const rules = scoreVibes(features);
+  const alpha = clamp01((vector[GRADIENT_INDEX] - GATE_LOW) / (GATE_HIGH - GATE_LOW));
+  const profile = {} as VibeProfile;
+  for (const id of VIBE_IDS) profile[id] = alpha * model[id] + (1 - alpha) * rules[id];
   return { profile, features, dominant: pickDominant(profile), frameCount: frames.length };
 }
