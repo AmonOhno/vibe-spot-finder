@@ -1,5 +1,37 @@
 # Vibe Spot Finder
 
+## アーキテクチャ概要
+
+ブラウザだけで完結する静的 SPA です。写真・動画の解析とスポット推薦はすべて端末内で行い、実行時の外部通信はありません
+（Google マップは生成したリンクを開くだけ）。解析モデルと関東スポットデータはオフラインの Python スクリプトで生成し、アプリに同梱しています。
+
+```mermaid
+C4Context
+  title System Context: Vibe Spot Finder
+
+  Person(user, "一般ユーザー", "写真・動画から雰囲気の近い旅行先を探す")
+  Person(dev, "開発者", "アプリ開発・モデル学習・データ生成")
+
+  System(vsf, "Vibe Spot Finder", "ブラウザ内で写真・動画の雰囲気を解析し、近いスポットを提案する静的 Web アプリ")
+
+  System_Ext(gmaps, "Google マップ", "スポットの検索結果を表示（リンクを開くだけ）")
+  System_Ext(openimages, "Open Images Dataset", "解析モデルの学習用 Web 写真とラベル")
+  System_Ext(overture, "Overture Maps（OSM 由来）", "関東スポットの元データ")
+  System_Ext(github, "GitHub / GitHub Actions", "ソース管理・CI・PR レビュー")
+
+  Rel(user, vsf, "写真・動画を選択し提案を見る", "HTTPS / ブラウザ")
+  Rel(user, gmaps, "提案スポットを開く", "リンク遷移")
+  Rel(vsf, gmaps, "検索 URL を生成")
+  Rel(dev, vsf, "開発・テスト")
+  Rel(dev, openimages, "学習データ取得（オフライン）")
+  Rel(dev, overture, "スポットデータ取得（オフライン）")
+  Rel(dev, github, "push / PR")
+
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+```
+
+Container 図・Component 図・データフローは [docs/architecture.md](docs/architecture.md) を参照してください。
+
 写真や動画を読み込ませると、その **雰囲気（色味・明暗・質感）** を解析し、
 **雰囲気が近い国内スポット** を **Google マップのリンク付き** で提案するブラウザアプリです。
 
@@ -12,6 +44,7 @@
 
 | ファイル | 内容 |
 |---|---|
+| [docs/architecture.md](docs/architecture.md) | アーキテクチャ（C4 モデル: System Context / Container / Component・データフロー） |
 | [docs/SPEC.md](docs/SPEC.md) | アプリ仕様書（機能・解析ルール・推薦ロジック・非機能要件） |
 | [docs/TEST_CASES.md](docs/TEST_CASES.md) | E2E テストケース一覧（TC-01〜TC-19） |
 | [docs/SECURITY.md](docs/SECURITY.md) | セキュリティ要件書（脅威・要件・CSP / ヘッダー・検証方法） |
@@ -22,6 +55,7 @@
 ```
 .
 ├── docs/
+│   ├── architecture.md          アーキテクチャ（C4 モデル）
 │   ├── SPEC.md                  アプリ仕様書
 │   ├── SECURITY.md              セキュリティ要件書
 │   └── TEST_CASES.md            テストケース
